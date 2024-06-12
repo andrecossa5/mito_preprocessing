@@ -21,7 +21,7 @@ process CONSENSUS_BAM {
     --strategy ${params.fgbio_UMI_consensus_mode} \
     --edits ${params.fgbio_UMI_consensus_edits}   \
     --output grouped.bam  \
-    -t UB \
+    -t UB 
 
   fgbio -Xmx4g --compression 0 CallMolecularConsensusReads \
     --input grouped.bam \
