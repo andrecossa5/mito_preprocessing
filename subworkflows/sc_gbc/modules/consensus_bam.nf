@@ -39,10 +39,10 @@ process CONSENSUS_BAM {
       --max-base-error-rate ${params.fgbio_base_error_rate}
 
   samtools fastq filtered_consensus.bam \
-    | bwa mem -t 16 -p -K 150000000 -Y ${params.ref} - \
+    | bwa mem -t 16 -p -K 150000000 -Y ${params.ref}/cassette_up.fa - \
     | fgbio -Xmx4g --compression 0 --async-io ZipperBams \
         --unmapped filtered_consensus.bam \
-        --ref ${params.ref} \
+        --ref ${params.ref}/cassette_up.fa \
         --tags-to-reverse Consensus \
         --tags-to-revcomp Consensus \
     | samtools sort -@ 1 -o ${cell}_consensus_filtered_mapped.bam --write-index
