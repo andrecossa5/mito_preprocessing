@@ -28,7 +28,7 @@ process CONSENSUS_BAM {
     --output /dev/stdout \
     --min-reads ${params.fgbio_min_reads}  \
     --min-input-base-quality ${params.fgbio_base_quality} \
-    -t UB
+    -t UB \
     --threads 4 \
     |  fgbio -Xmx8g --compression 1 FilterConsensusReads \
         --input /dev/stdin \
