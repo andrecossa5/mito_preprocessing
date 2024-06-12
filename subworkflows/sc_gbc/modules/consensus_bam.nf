@@ -16,8 +16,7 @@ process CONSENSUS_BAM {
 
   script:
   """
-
-  fgbio -Xmx8g --compression 1 --async-io GroupReadsByUmi \
+  fgbio -Xmx8g --compression 0 --async-io GroupReadsByUmi \
     --input ${cell}.bam   \
     --strategy ${params.fgbio_UMI_consensus_mode} \
     --edits ${params.fgbio_UMI_consensus_edits}   \
@@ -25,33 +24,28 @@ process CONSENSUS_BAM {
     -t UB \
     -T MI \
 
-  fgbio -Xmx4g --compression 1 CallMolecularConsensusReads \
+  fgbio -Xmx4g --compression 0 CallMolecularConsensusReads \
     --input grouped.bam \
-    --output consensus_unmapped.bam  \
+    --output /dev/stdout \
     --min-reads ${params.fgbio_min_reads}  \
     --min-input-base-quality ${params.fgbio_base_quality}
+    --threads 4 \
+    |  fgbio -Xmx8g --compression 1 FilterConsensusReads \
+        --input /dev/stdin \
+        --output filtered_consensus.bam\
+      --ref ${params.ref}/cassette_up.fa   \
+      --min-reads ${params.fgbio_min_reads}  \
+      --min-base-quality ${params.fgbio_base_quality} \
+      --max-base-error-rate ${params.fgbio_base_error_rate}
 
-
-
-  samtools fastq consensus_unmapped.bam \
-  | bwa mem -t 16 -p -K 150000000 -Y ${params.ref}/cassette_up.fa - \
-  | fgbio -Xmx4g --compression 1 --async-io ZipperBams \
-    --unmapped consensus_unmapped.bam \
-    --ref ${params.ref}/cassette_up.fa \
-    --tags-to-reverse Consensus \
-    --tags-to-revcomp Consensus \
-    --output consensus_mapped.bam 
-
-
-  fgbio -Xmx8g --compression 0 FilterConsensusReads  \
-   --input consensus_mapped.bam  \
-    --output /dev/stdout  \
-    --ref ${params.ref}/cassette_up.fa   \
-    --min-reads ${params.fgbio_min_reads}  \
-    --min-base-quality ${params.fgbio_base_quality} \
-    --max-base-error-rate ${params.fgbio_base_error_rate}\
-  | samtools sort -@ 1 -o ${cell}_consensus_filtered_mapped.bam --write-index
-
+  samtools fastq filtered_consensus.bam \
+    | bwa mem -t 16 -p -K 150000000 -Y ${params.ref} - \
+    | fgbio -Xmx4g --compression 0 --async-io ZipperBams \
+        --unmapped filtered_consensus.bam \
+        --ref ${params.ref} \
+        --tags-to-reverse Consensus \
+        --tags-to-revcomp Consensus \
+    | samtools sort -@ 1 -o ${cell}_consensus_filtered_mapped.bam --write-index
 
   """
 
@@ -61,4 +55,3 @@ process CONSENSUS_BAM {
   """
 
 }
-
