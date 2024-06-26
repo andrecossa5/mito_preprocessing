@@ -11,22 +11,31 @@ include { maester } from "./subworkflows/maester/main"
 //
 
 
+
+
 // Create folders
 process CREATE_FOLDER {
 
     input:
-    path(csv)
+    tuple path(path_source), (name_new_path_bulk), (id_we_want)
 
     output:
-    tuple val(sample_name), path(sample_dir), emit: samples
+    tuple val(${name_new_path_bulk}), path(${name_new_path_bulk}), emit: samples
 
     script:
     """ 
-    # create_folder.py path_meta --> ${csv}
+    mkdir ${name_new_path_bulk}
+    cd ${name_new_path_bulk}
+    ln -s ${path_source}/${name_new_bulk}/*R2_*.fastq.gz .
+    ln -s ${path_source}/${name_new_bulk}/*R1_*.fastq.gz .
+
+
+
     """
 
     stub:
     """
+    mkdir ${name_new_path_bulk}
 
     """
 
@@ -67,8 +76,14 @@ process CREATE_FOLDER {
 //
 
 workflow TENX {
+    csvChannel = Channel
+        .fromPath(params.sc_tenx_csv)
+        .splitCsv(header: true, sep: ',')
+    csvChannel
+        .map { row -> tuple(row.path_source, row.name_new_path_bulk, row.id_we_want) }
+        .set { csvTuples }
 
-    CREATE_FOLDER(params.sc_tenx_csv)  // Da fare per tutti
+    CREATE_FOLDER(csvTuples)  
     tenx(CREATE_FOLDER.out.samples)
 
 }
