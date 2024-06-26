@@ -17,17 +17,17 @@ include { maester } from "./subworkflows/maester/main"
 process CREATE_FOLDER {
 
     input:
-    tuple path(path_source), (name_new_path_bulk), (id_we_want)
+        tuple val(path_source), val(name_new_path_bulk), val(id_we_want)
 
     output:
-    tuple val(${name_new_path_bulk}), path(${name_new_path_bulk}), emit: samples
+        tuple val(name_new_path_bulk), path(name_new_path_bulk), emit: samples
 
     script:
     """ 
-    mkdir ${name_new_path_bulk}
+    mkdir -p ${name_new_path_bulk}
     cd ${name_new_path_bulk}
-    ln -s ${path_source}/${name_new_bulk}/*R2_*.fastq.gz .
-    ln -s ${path_source}/${name_new_bulk}/*R1_*.fastq.gz .
+    ln -s ${path_source}/${name_new_path_bulk}/*R2_*.fastq.gz .
+    ln -s ${path_source}/${name_new_path_bulk}/*R1_*.fastq.gz .
 
 
 
@@ -35,7 +35,7 @@ process CREATE_FOLDER {
 
     stub:
     """
-    mkdir ${name_new_path_bulk}
+    mkdir -p ${name_new_path_bulk}
 
     """
 
