@@ -79,13 +79,20 @@ workflow TENX {
     csvChannel = Channel
         .fromPath(params.sc_tenx_csv)
         .splitCsv(header: true, sep: ',')
+        .view { "CSV Content: ${it}" }  
+
     csvChannel
         .map { row -> tuple(row.path_source, row.name_new_path_bulk, row.id_we_want) }
+        .view { "Mapped Tuple: ${it}" }  
         .set { csvTuples }
 
-    CREATE_FOLDER(csvTuples)  
-    tenx(CREATE_FOLDER.out.samples)
+    csvTuples
+        .view { "Tuples to CREATE_FOLDER: ${it}" }  
 
+    CREATE_FOLDER(csvTuples)
+        .view { "Output from CREATE_FOLDER: ${it}" }  
+    
+    tenx(CREATE_FOLDER.out.samples)
 }
 
 //
