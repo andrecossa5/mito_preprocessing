@@ -11,25 +11,50 @@ include { maester } from "./subworkflows/maester/main"
 //
 
 
+// Create folders
+process CREATE_FOLDER {
+
+    input:
+    path(csv)
+
+    output:
+    tuple val(sample_name), path(sample_dir), emit: samples
+
+    script:
+    """ 
+    # create_folder.py path_meta --> ${csv}
+    """
+
+    stub:
+    """
+
+    """
+
+}
+
+
+//
+
+
 // (Bulk DNA) targeted DNA sequencing of GBC
-ch_bulk_gbc = Channel
-    .fromPath("${params.bulk_gbc_indir}/*", type:'dir') 
-    .map{ tuple(it.getName(), it) }
-    
-// GBC enrichment from 10x library
-ch_sc_gbc = Channel
-    .fromPath("${params.sc_gbc_indir}/*", type:'dir')
-    .map{ tuple(it.getName(), it) }
-
-// 10x GEX library
-ch_tenx = Channel
-    .fromPath("${params.sc_tenx_indir}/*", type:'dir')
-    .map{ tuple(it.getName(), it) }
-
-// MAESTER library
-ch_maester = Channel
-    .fromPath("${params.sc_maester_indir}/*", type:'dir') 
-    .map{ tuple(it.getName(), it) }
+// ch_bulk_gbc = Channel
+//     .fromPath("${params.bulk_gbc_indir}/*", type:'dir') 
+//     .map{ tuple(it.getName(), it) }
+//     
+// // GBC enrichment from 10x library
+// ch_sc_gbc = Channel
+//     .fromPath("${params.sc_gbc_indir}/*", type:'dir')
+//     .map{ tuple(it.getName(), it) }
+// 
+// // 10x GEX library
+// ch_tenx = Channel
+//     .fromPath("${params.sc_tenx_indir}/*", type:'dir')
+//     .map{ tuple(it.getName(), it) }
+// 
+// // MAESTER library
+// ch_maester = Channel
+//     .fromPath("${params.sc_maester_indir}/*", type:'dir') 
+//     .map{ tuple(it.getName(), it) }
 
 
 //
@@ -43,7 +68,8 @@ ch_maester = Channel
 
 workflow TENX {
 
-    tenx(ch_tenx)
+    CREATE_FOLDER(params.sc_tenx_csv)  // Da fare per tutti
+    tenx(CREATE_FOLDER.out.samples)
 
 }
 

@@ -3,9 +3,9 @@
     "bulk_gbc_indir" : "None",
     "bulk_gbc_outdir" :  "None",
 
-    "sc_gbc_indir" : "/Users/IEO5505/Desktop/example_mito/data/sc_gbc",
-    "sc_tenx_indir" : "/Users/IEO5505/Desktop/example_mito/data/sc_tenx/",
-    "sc_maester_indir" : "/Users/IEO5505/Desktop/example_mito/data/sc_maester/",
+    "sc_gbc_csv" : "/Users/IEO5505/Desktop/example_mito/data/sc_gbc",
+    "sc_tenx_csv" : "/Users/IEO5505/Desktop/example_mito/data/sc_tenx/",
+    "sc_maester_csv" : "/Users/IEO5505/Desktop/example_mito/data/sc_maester/",
     "sc_outdir" : "/Users/IEO5505/Desktop/example_mito/results",
 
     "ref" : "/Users/IEO5505/Desktop/example_mito/meta/ref",
