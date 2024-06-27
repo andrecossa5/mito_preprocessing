@@ -1,33 +1,34 @@
 {
 
     "bulk_gbc_indir" : "None",
-    "bulk_gbc_outdir" :  "None",
+    "bulk_gbc_outdir" :  "/hpcnfs/scratch/PGP/MI_TO_benchmark/final_preprocessing/pp/results/bulk",
 
-    "sc_gbc_csv" : "/Users/IEO5505/Desktop/example_mito/data/sc_gbc",
-    "sc_tenx_csv" : "/Users/IEO5505/Desktop/example_mito/data/sc_tenx/",
-    "sc_maester_csv" : "/Users/IEO5505/Desktop/example_mito/data/sc_maester/",
-    "sc_outdir" : "/Users/IEO5505/Desktop/example_mito/results",
+    "sc_gbc_indir" : "/hpcnfs/scratch/PGP/cossa_campani/preprocessing/pp100/data/sc_gbc/",
+    "sc_tenx_csv" : "/Users/ieo6943/Downloads/sc_tenx_100.csv",
+    "sc_maester_indir" : "/hpcnfs/scratch/PGP/cossa_campani/preprocessing/pp100/data/maester/",
+    "sc_outdir" : "/hpcnfs/scratch/PGP/cossa_campani/preprocessing/pp/scratch",
 
-    "ref" : "/Users/IEO5505/Desktop/example_mito/meta/ref",
+    "ref" : "/hpcnfs/data/PGP/reference_genomes/custom/GBC_masked_index/",
     "string_lentiviral" : "lentiCassette",
     "string_MT" : "chrM",
-    "whitelist" : "/Users/IEO5505/Desktop/example_mito/meta/whitelist.txt",
+    "whitelist" : "/hpcnfs/data/PGP/reference_genomes/custom/10x_whitelists/v3.txt",
 
     "fgbio_UMI_consensus_mode" : "Adjacency",
     "fgbio_UMI_consensus_edits" : 1,
     "fgbio_min_reads_gbc" : 10,
-    "fgbio_min_reads_mito" : 3,
+    "fgbio_min_reads_mito" : 3,    
     "fgbio_base_quality" : 30,
     "fgbio_base_error_rate" : 0.2,
+
     "min_alignment_quality" : 30,
 
+    "gbc_sample_map" : "/hpcnfs/scratch/PGP/cossa_campani/preprocessing/sample_map.csv",
     "sc_gbc_anchor_sequence" : "TAGCAAACTGGGGCACAAGCTTAATTAAGAATT",
     "bulk_correction_treshold" : 3,
     "umi_treshold" : 5,
     "p_treshold" : 1,
     "max_ratio_treshold" : 0.75,
     "normalized_abundance_treshold" : 0.75,
-    "sample_params" : "None",
-    "gbc_sample_map" : "None"
+    "sample_params" : "NULL"
 
 }
