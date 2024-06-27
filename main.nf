@@ -42,7 +42,6 @@ process CREATE_FOLDER {
 }
 
 
-//
 
 
 // (Bulk DNA) targeted DNA sequencing of GBC
