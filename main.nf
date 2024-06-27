@@ -26,8 +26,8 @@ process CREATE_FOLDER {
     """ 
     mkdir -p ${name_new_path_bulk}
     cd ${name_new_path_bulk}
-    ln -s ${path_source}/${name_new_path_bulk}/*R2_*.fastq.gz .
-    ln -s ${path_source}/${name_new_path_bulk}/*R1_*.fastq.gz .
+    ln -s ${path_source}/${name_new_path_bulk}/*R2*.fastq.gz .
+    ln -s ${path_source}/${name_new_path_bulk}/*R1*.fastq.gz .
 
 
 
