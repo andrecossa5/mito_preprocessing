@@ -75,27 +75,33 @@ process CREATE_FOLDER {
 //
 
 workflow TENX {
-    csvChannel = Channel
+    csvChannel_tenx = Channel
         .fromPath(params.sc_tenx_csv)
         .splitCsv(header: true, sep: ',')
-        .view { "CSV Content: ${it}" }  
         .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
-        .view { "Mapped Tuple: ${it}" }  
 
- 
-
-    CREATE_FOLDER(csvChannel)
-        .view { "Output from CREATE_FOLDER: ${it}" }  
-    
+    CREATE_FOLDER(csvChannel_tenx)
     tenx(CREATE_FOLDER.out.samples)
 }
 
 //
 
 workflow TENX_MITO {
+    csvChannel_tenx = Channel
+        .fromPath(params.sc_tenx_csv)
+        .splitCsv(header: true, sep: ',')
+        .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
 
-    tenx(ch_tenx)
-    maester(ch_maester, tenx.out.filtered, tenx.out.bam)
+    CREATE_FOLDER(csvChannel_tenx)
+    tenx(CREATE_FOLDER.out.samples)
+
+    csvChannel_maester = Channel
+        .fromPath(params.sc_maester_csv)
+        .splitCsv(header: true, sep: ',')
+        .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
+
+    CREATE_FOLDER(csvChannel_maester)
+    maester(CREATE_FOLDER.out.samples, tenx.out.filtered, tenx.out.bam)
 
 } 
 
