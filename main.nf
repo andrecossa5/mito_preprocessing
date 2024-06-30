@@ -52,25 +52,28 @@ process CREATE_FOLDER_MAESTER {
     """
 }
 
-// (Bulk DNA) targeted DNA sequencing of GBC
-// ch_bulk_gbc = Channel
-//     .fromPath("${params.bulk_gbc_indir}/*", type:'dir') 
-//     .map{ tuple(it.getName(), it) }
-//     
-// // GBC enrichment from 10x library
-// ch_sc_gbc = Channel
-//     .fromPath("${params.sc_gbc_indir}/*", type:'dir')
-//     .map{ tuple(it.getName(), it) }
-// 
-// // 10x GEX library
-// ch_tenx = Channel
-//     .fromPath("${params.sc_tenx_indir}/*", type:'dir')
-//     .map{ tuple(it.getName(), it) }
-// 
-// // MAESTER library
-// ch_maester = Channel
-//     .fromPath("${params.sc_maester_indir}/*", type:'dir') 
-//     .map{ tuple(it.getName(), it) }
+process CREATE_FOLDER_GBC {
+
+    input:
+        tuple val(path_source), val(name_new_path_bulk), val(id_we_want)
+
+    output:
+        tuple val(name_new_path_bulk), path(name_new_path_bulk), emit: samples
+
+    script:
+    """ 
+    mkdir -p ${name_new_path_bulk}
+    cd ${name_new_path_bulk}
+    ln -s ${path_source}/${name_new_path_bulk}/*R2*.fastq.gz .
+    ln -s ${path_source}/${name_new_path_bulk}/*R1*.fastq.gz .
+    """
+
+    stub:
+    """
+    mkdir -p ${name_new_path_bulk}
+    """
+}
+
 
 //----------------------------------------------------------------------------//
 // mito_preprocessing pipeline
@@ -114,17 +117,50 @@ workflow BULK_GBC {
 
 //
 
-workflow TENX_GBC {
-    tenx(ch_tenx)
-    sc_gbc(ch_sc_gbc, tenx.out.filtered)
+workflow TENX_GBC {    
+    csvChannel_tenx = Channel
+        .fromPath(params.sc_tenx_csv)
+        .splitCsv(header: true, sep: ',')
+        .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
+
+    CREATE_FOLDER_TENX(csvChannel_tenx).set { create_folder_tenx_out }
+    tenx(create_folder_tenx_out.samples)
+
+    csvChannel_gbc = Channel
+        .fromPath(params.sc_gbc_csv)
+        .splitCsv(header: true, sep: ',')
+        .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
+
+    CREATE_FOLDER_GBC(csvChannel_gbc).set { create_folder_gbc_out }
+    sc_gbc(create_folder_gbc_out.samples, tenx.out.filtered)
 }
 
 //
 
 workflow TENX_GBC_MITO {
-    tenx(ch_tenx)
-    sc_gbc(ch_sc_gbc, tenx.out.filtered)
-    maester(ch_maester, tenx.out.filtered, tenx.out.bam)
+    csvChannel_tenx = Channel
+        .fromPath(params.sc_tenx_csv)
+        .splitCsv(header: true, sep: ',')
+        .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
+
+    CREATE_FOLDER_TENX(csvChannel_tenx).set { create_folder_tenx_out }
+    tenx(create_folder_tenx_out.samples)
+
+    csvChannel_gbc = Channel
+        .fromPath(params.sc_gbc_csv)
+        .splitCsv(header: true, sep: ',')
+        .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
+
+    CREATE_FOLDER_GBC(csvChannel_gbc).set { create_folder_gbc_out }
+    sc_gbc(create_folder_gbc_out.samples, tenx.out.filtered)
+
+    csvChannel_maester = Channel
+        .fromPath(params.sc_maester_csv)
+        .splitCsv(header: true, sep: ',')
+        .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
+
+    CREATE_FOLDER_MAESTER(csvChannel_maester).set { create_folder_maester_out }
+    maester(create_folder_maester_out.samples, tenx.out.filtered, tenx.out.bam)
 }
 
 //
