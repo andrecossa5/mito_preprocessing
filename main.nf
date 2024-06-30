@@ -7,14 +7,8 @@ include { tenx } from "./subworkflows/tenx/main"
 include { sc_gbc } from "./subworkflows/sc_gbc/main"
 include { maester } from "./subworkflows/maester/main"
 
-
-//
-
-
-
-
 // Create folders
-process CREATE_FOLDER {
+process CREATE_FOLDER_TENX {
 
     input:
         tuple val(path_source), val(name_new_path_bulk), val(id_we_want)
@@ -28,21 +22,35 @@ process CREATE_FOLDER {
     cd ${name_new_path_bulk}
     ln -s ${path_source}/${name_new_path_bulk}/*R2*.fastq.gz .
     ln -s ${path_source}/${name_new_path_bulk}/*R1*.fastq.gz .
-
-
-
     """
 
     stub:
     """
     mkdir -p ${name_new_path_bulk}
-
     """
-
 }
 
+process CREATE_FOLDER_MAESTER {
 
+    input:
+        tuple val(path_source), val(name_new_path_bulk), val(id_we_want)
 
+    output:
+        tuple val(name_new_path_bulk), path(name_new_path_bulk), emit: samples
+
+    script:
+    """ 
+    mkdir -p ${name_new_path_bulk}
+    cd ${name_new_path_bulk}
+    ln -s ${path_source}/${name_new_path_bulk}/*R2*.fastq.gz .
+    ln -s ${path_source}/${name_new_path_bulk}/*R1*.fastq.gz .
+    """
+
+    stub:
+    """
+    mkdir -p ${name_new_path_bulk}
+    """
+}
 
 // (Bulk DNA) targeted DNA sequencing of GBC
 // ch_bulk_gbc = Channel
@@ -64,15 +72,9 @@ process CREATE_FOLDER {
 //     .fromPath("${params.sc_maester_indir}/*", type:'dir') 
 //     .map{ tuple(it.getName(), it) }
 
-
-//
-
-
 //----------------------------------------------------------------------------//
 // mito_preprocessing pipeline
 //----------------------------------------------------------------------------//
-
-//
 
 workflow TENX {
     csvChannel_tenx = Channel
@@ -80,8 +82,8 @@ workflow TENX {
         .splitCsv(header: true, sep: ',')
         .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
 
-    CREATE_FOLDER(csvChannel_tenx)
-    tenx(CREATE_FOLDER.out.samples)
+    CREATE_FOLDER_TENX(csvChannel_tenx).set { create_folder_tenx_out }
+    tenx(create_folder_tenx_out.samples)
 }
 
 //
@@ -92,51 +94,42 @@ workflow TENX_MITO {
         .splitCsv(header: true, sep: ',')
         .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
 
-    CREATE_FOLDER(csvChannel_tenx)
-    tenx(CREATE_FOLDER.out.samples)
+    CREATE_FOLDER_TENX(csvChannel_tenx).set { create_folder_tenx_out }
+    tenx(create_folder_tenx_out.samples)
 
     csvChannel_maester = Channel
         .fromPath(params.sc_maester_csv)
         .splitCsv(header: true, sep: ',')
         .map { row -> tuple(row.Path_source, row.Name_new_path_sc, row.ID_we_want) }
 
-    CREATE_FOLDER(csvChannel_maester)
-    maester(CREATE_FOLDER.out.samples, tenx.out.filtered, tenx.out.bam)
-
+    CREATE_FOLDER_MAESTER(csvChannel_maester).set { create_folder_maester_out }
+    maester(create_folder_maester_out.samples, tenx.out.filtered, tenx.out.bam)
 } 
 
 //
 
 workflow BULK_GBC {
- 
     bulk_gbc(ch_bulk_gbc)
-
 }
 
 //
 
 workflow TENX_GBC {
-
     tenx(ch_tenx)
     sc_gbc(ch_sc_gbc, tenx.out.filtered)
-
 }
 
 //
 
 workflow TENX_GBC_MITO {
-
     tenx(ch_tenx)
     sc_gbc(ch_sc_gbc, tenx.out.filtered)
     maester(ch_maester, tenx.out.filtered, tenx.out.bam)
-
 }
 
 //
 
-// Mock
+// Mock workflow
 workflow {
-    
     Channel.of(1,2,3,4) | view
-
 }
