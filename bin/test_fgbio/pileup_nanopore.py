@@ -45,7 +45,7 @@ def find_query_base_at_position(read, target_reference_name, target_position):
 ##
 
 
-def filter_UMIs(path_bam, positions=None, mapping_quality_thr=60, median_base_quality_thr=20):
+def filter_UMIs(path_bam, positions=None, mapping_quality_thr=60, median_base_quality_thr=20, tag='UB'):
     """
     Get .bam stats.
     """
@@ -119,7 +119,7 @@ def filter_UMIs(path_bam, positions=None, mapping_quality_thr=60, median_base_qu
 # mut_allele = 'A'
 
 def get_allele_counts(UMIs, UMI_stats=None, chrom=None, pos=None, wt_allele=None,
-                     mut_allele=None, consensus_thr=.75, min_reads=3, min_base_quality=25):
+                     mut_allele=None, consensus_thr=.75, min_reads=3, min_base_quality=20):
     """
     Consensus pileup at a target genomic position.
     """
@@ -155,7 +155,7 @@ def get_allele_counts(UMIs, UMI_stats=None, chrom=None, pos=None, wt_allele=None
             else:
                 consensus_base = np.nan
                 
-        mismatched_alleles = set(['A', 'C', 'T', 'T'])-set([wt_allele, mut_allele])
+        mismatched_alleles = set(['A', 'C', 'T', 'G'])-set([wt_allele, mut_allele])
         if consensus_base == wt_allele:
             wt += 1
         elif consensus_base == mut_allele:
@@ -207,15 +207,15 @@ def make_allelic_table(UMIs, positions, UMI_stats=None, consensus_thr=.75, min_r
 # Filter UMIs
 
 # Test
-# path_ = '/Users/IEO5505/Desktop/example_mito/scratch'
-# os.chdir(path_)
-# cell = 'AAA'
-# path_bam = os.path.join(path_, 'nanopore.bam')
-# path_bed = os.path.join(path_, 'sAML1.bed')
-# base_quality_thr = 25                                   # 20 --> 1%, 30, 0.1 % errors --> NOT LESS THEN 25-30
-# mapping_quality_thr = 60                                # 20 --> 1%, 30, 0.1 % errors --> NOT LESS THEN 30
-# min_reads = 1
-# base_consensus_error_thr = .25
+path_ = '/Users/IEO5505/Desktop/example_mito/scratch'
+os.chdir(path_)
+cell = 'AAA'
+path_bam = os.path.join(path_, 'merged.bam')
+path_bed = os.path.join(path_, 'sAML1.bed')
+base_quality_thr = 25                                   # 20 --> 1%, 30, 0.1 % errors --> NOT LESS THEN 25-30
+mapping_quality_thr = 20                                # 20 --> 1%, 30, 0.1 % errors --> NOT LESS THEN 30
+min_reads = 3
+base_consensus_error_thr = .25
 
 
 ##
@@ -231,7 +231,7 @@ def main():
     base_quality_thr = int(sys.argv[6])
 
     positions = pd.read_csv(path_bed, sep='\t', header=None)
-    UMIs, d, UMI_stats = filter_UMIs(path_bam, positions)
+    UMIs, d, UMI_stats = filter_UMIs(path_bam, positions, tag='BX')
     allelic_table = make_allelic_table(
         UMIs, positions=positions, UMI_stats=UMI_stats, min_reads=min_reads, 
         consensus_thr=1-base_consensus_error_thr, min_base_quality=base_quality_thr
@@ -254,48 +254,48 @@ if __name__ == '__main__' :
 # Controls
 
 # BLAT
-# chrom = 'chr21'
-# pos = 34880691
-# 
-# UMI_stats.query('chrom==@chrom and n_reads>=3')
-# 
-# umi = 'TATACCCGCAAT'
-# 
-# seqs = [ x[1].seq for x in UMIs[umi] ]
-# [ find_query_base_at_position(x[1], chrom, pos+1) for x in UMIs[umi] ]
-# 
-# n = 5
-# i = 0
-# 
-# seqs[i]
-# read = UMIs[umi][i][1]
-# len(read.seq)
-# 
-# read.mate_is_forward
-# read.query_alignment_start
-# read.query_alignment_end
-# read.reference_start
-# 
-# [ x for x in read.get_aligned_pairs(True) if x[1] == pos-2 ][0]
-# [ x for x in read.get_aligned_pairs(True) if x[1] == pos ][0]
-# 
-# 
-# qpos, refpos = [ x for x in read.get_aligned_pairs(True) if x[1] == pos-1 ][0]
-# flanks = [ x for x in read.get_aligned_pairs(True) if x[0] > (qpos-n) and x[0] < (qpos+n) ]
-# 
-# fasta = pysam.FastaFile('GRCh38.d1.vd1.fa')
-# 
-# query_seq = [ read.seq[x[0]] for x in flanks ]
-# ref_seq = [ fasta.fetch(chrom, start=x[1], end=x[1]+1) for x in flanks ] 
-# 
-# len(query_seq)
-# len(ref_seq)
-# 
-# query_seq
-# ref_seq
-# read.seq[qpos]
-# fasta.fetch(chrom, start=refpos, end=refpos+1)
-# list(read.query_qualities[flanks[0][0]:flanks[-1][0]+1])
+chrom = 'chr1'
+pos = 34880691
 
+UMI_stats.query('chrom==@chrom and n_reads>=3')
+
+umi = 'TGTTGGTTGTTT'
+
+seqs = [ x[1].seq for x in UMIs[umi] ]
+bases = [ find_query_base_at_position(x[1], chrom, pos+1) for x in UMIs[umi] ]
+
+n = 5
+i = 0
+
+seqs[i]
+read = UMIs[umi][i][1]
+len(read.seq)
+
+read.mate_is_forward
+read.query_alignment_start
+read.query_alignment_end
+read.reference_start
+
+[ x for x in read.get_aligned_pairs(True) if x[1] == pos-2 ][0]
+[ x for x in read.get_aligned_pairs(True) if x[1] == pos ][0]
+
+
+qpos, refpos = [ x for x in read.get_aligned_pairs(True) if x[1] == pos-1 ][0]
+flanks = [ x for x in read.get_aligned_pairs(True) if x[0] > (qpos-n) and x[0] < (qpos+n) ]
+
+fasta = pysam.FastaFile('GRCh38.d1.vd1.fa')
+
+query_seq = [ read.seq[x[0]] for x in flanks ]
+ref_seq = [ fasta.fetch(chrom, start=x[1], end=x[1]+1) for x in flanks ] 
+
+len(query_seq)
+len(ref_seq)
+
+query_seq
+ref_seq
+read.seq[qpos]
+fasta.fetch(chrom, start=refpos, end=refpos+1)
+list(read.query_qualities[flanks[0][0]:flanks[-1][0]+1]
+     
 
 ##

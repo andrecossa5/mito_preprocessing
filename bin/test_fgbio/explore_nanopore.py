@@ -13,7 +13,7 @@ matplotlib.use('macOSX')
 
 
 # Explore
-sample = 'sAML1'
+sample = 'sAML1_new'
 path_counts = os.path.join(f'/Users/IEO5505/Desktop/example_mito/results/test_nanopore_{sample}', 'counts_table.csv') 
 path_consensus = os.path.join(f'/Users/IEO5505/Desktop/example_mito/results/test_nanopore_{sample}', 'cons_stats.csv') 
 
