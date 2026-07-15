@@ -44,6 +44,12 @@ def get_bam_path_from_csv(bam_csv, sample):
     row = df.loc[df["sample"] == sample]
     return row["bam"].iloc[0] if not row.empty else None
 
+def get_fastq_folders_from_csv(fastq_csv, sample):
+    """Extract FASTQ folder paths for a given sample from CSV input."""
+    df = pd.read_csv(fastq_csv)
+    rows = df.loc[df["sample"] == sample]
+    return rows["fastq_folder"].tolist() if not rows.empty else []
+
 def main():
     # Create the parser
     parser = argparse.ArgumentParser(
@@ -171,7 +177,17 @@ def main():
     if args.raw_data_input and args.raw_data_input_type:
         input_type = args.raw_data_input_type.lower()
         if input_type in ["fastq", "fastq,gbc"]:
-            metrics["total_reads"] = count_fastq_reads(args.raw_data_input)
+            fastq_input = args.raw_data_input
+            if fastq_input.endswith(".csv"):
+                # Handle CSV input: get FASTQ folders for this sample
+                fastq_folders = get_fastq_folders_from_csv(fastq_input, args.sample)
+                total_reads = 0
+                for folder in fastq_folders:
+                    total_reads += count_fastq_reads(folder)
+                metrics["total_reads"] = total_reads
+            else:
+                # Direct directory input
+                metrics["total_reads"] = count_fastq_reads(fastq_input)
         elif input_type == "bam":
             bam_path = args.raw_data_input
             if bam_path.endswith(".csv"):
@@ -263,7 +279,11 @@ def main():
             }
         ]
     }
-    with open(args.out_json, "w") as f:
+    out_path = Path(args.out_json)
+    # Ensure output directory exists when writing sample-scoped files
+    if out_path.parent and not out_path.parent.exists():
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w") as f:
         json.dump(report, f, indent=2)
 
 if __name__ == "__main__":
