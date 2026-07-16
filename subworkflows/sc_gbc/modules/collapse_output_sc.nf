@@ -9,7 +9,7 @@ process collapse_output_sc {
    publishDir "${params.sc_outdir}", mode: 'copy'
 
    input:
-   path run_jsons
+   val ready
 
    output:
    path "sc_summary/run_report.html"

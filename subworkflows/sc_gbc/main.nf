@@ -99,7 +99,7 @@ workflow sc_gbc {
             .combine(generate_run_summary_sc.out.summary_json, by: 0)
 
         publish_sc_gbc(publish_ch)
-        collapse_output_sc(generate_run_summary_sc.out.summary_json.map { it[1] }.collect())        
+        collapse_output_sc(generate_run_summary_sc.out.summary_json.map { sample, _file -> sample }.collect().last())         
 
     emit:
         summary_json = generate_run_summary_sc.out.summary_json

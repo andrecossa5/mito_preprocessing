@@ -24,7 +24,7 @@ process generate_run_summary_sc {
         path(clone_sz_interactive)
 
     output:
-    tuple val(sample_name), path("run_summary.json"), emit: summary_json
+    tuple val(sample_name), path("${sample_name}/run_summary.json"), emit: summary_json
 
     script:
     """
@@ -47,6 +47,6 @@ process generate_run_summary_sc {
         --sc_outdir ${params.sc_outdir} \
         --pattern ${params.sc_gbc_anchor_sequence} \
         --ref ${params.ref} \
-        --out_json run_summary.json
+        --out_json ${sample_name}/run_summary.json
     """
 }
