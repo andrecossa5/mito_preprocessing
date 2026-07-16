@@ -8,7 +8,7 @@ process publish_sc_gbc {
 
     label 'scLT'
     tag "${sample_name}"
-    publishDir "${params.sc_outdir}/${sample_name}/", mode: 'copy'
+    publishDir "${params.outdir}/${sample_name}/", mode: 'copy'
 
     input:
     tuple val(sample_name), 
@@ -43,7 +43,7 @@ process publish_sc_gbc {
 
     script:
     """
-    echo "Moving all output files to ${params.sc_outdir}/${sample_name}/..."
+    echo "Moving all output files to ${params.outdir}/${sample_name}/..."
     """
 
 }

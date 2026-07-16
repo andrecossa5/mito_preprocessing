@@ -1,0 +1,241 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "https://github.com/andrecossa5/nf-lenti/blob/master/nextflow_schema.json",
+    "title": "nf-lenti pipeline parameters",
+    "description": "Integrated pipeline for lentiviral-based single-cell lineage tracing",
+    "type": "object",
+    "definitions": {
+        "input_output_options": {
+            "title": "Input/Output options",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Define where the pipeline should find input data and save output data.",
+            "required": ["input_sheet", "outdir"],
+            "properties": {
+                "input_type": {
+                    "type": "string",
+                    "description": "Type of raw input data (TENX_GBC entrypoint)",
+                    "default": "fastq",
+                    "enum": ["fastq", "fastq,GBC", "bam", "fastq,mixed"],
+                    "help_text": "Selects how the single-cell GBC libraries are provided: separate TENX and GBC FASTQ libraries ('fastq'), GBC FASTQs plus external cell barcodes ('fastq,GBC'), a pre-aligned GBC bam plus external cell barcodes ('bam'), or a single set of FASTQs where TENX and GBC reads are mixed ('fastq,mixed'). Not used by the BULK_GBC entrypoint."
+                },
+                "input_sheet": {
+                    "type": "string",
+                    "description": "Path to the input sample sheet (CSV)",
+                    "help_text": "CSV sample sheet. Columns depend on the entrypoint and, for TENX_GBC, on input_type."
+                },
+                "outdir": {
+                    "type": "string",
+                    "description": "The output directory where the results will be saved",
+                    "help_text": "Absolute path to the output directory where all pipeline results will be stored."
+                }
+            }
+        },
+        "alignment_options": {
+            "title": "Alignment options",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "Reference and cell-barcode resources used to align single-cell reads.",
+            "properties": {
+                "ref": {
+                    "type": "string",
+                    "description": "Path to the STARsolo reference directory",
+                    "help_text": "Directory containing the STAR genome index (with the lentiviral cassette contig) used by STARsolo."
+                },
+                "tenx_whitelist": {
+                    "type": "string",
+                    "description": "10x Genomics cell barcode whitelist URL or path",
+                    "default": "https://teichlab.github.io/scg_lib_structs/data/10X-Genomics/3M-february-2018.txt.gz",
+                    "help_text": "URL or path to the 10x Genomics cell barcode whitelist used by STARsolo (--soloCBwhitelist)."
+                }
+            }
+        },
+        "lentiviral_barcode_options": {
+            "title": "Lentiviral barcode options",
+            "type": "object",
+            "fa_icon": "fas fa-barcode",
+            "description": "Definition of the lentiviral cassette and of the integrated GBC location.",
+            "properties": {
+                "lenti_string": {
+                    "type": "string",
+                    "description": "Name of the lentiviral cassette contig",
+                    "default": "lentiCassette",
+                    "help_text": "Contig/sequence name of the lentiviral cassette in the reference; used to extract reads mapping to the cassette."
+                },
+                "lenti_pattern": {
+                    "type": "string",
+                    "description": "Lentiviral anchor sequence preceding the GBC",
+                    "help_text": "Anchor sequence used to identify GBC-containing reads (bulk search patterns and mixed-library splitting). Differs between the sc and bulk entrypoints."
+                },
+                "lenti_start": {
+                    "type": "integer",
+                    "description": "0-based offset of the GBC within the read (leading bases to skip)",
+                    "default": 33,
+                    "minimum": 0,
+                    "help_text": "0-based start of the GBC. Used directly by the Python extractor and converted to 1-based inside awk (bulk)."
+                },
+                "lenti_bc_length": {
+                    "type": "integer",
+                    "description": "GBC length (bp)",
+                    "default": 18,
+                    "minimum": 1,
+                    "help_text": "Number of bases of the integrated GBC to extract."
+                }
+            }
+        },
+        "sequencing_data_preprocessing_options": {
+            "title": "Sequencing data preprocessing options",
+            "type": "object",
+            "fa_icon": "fas fa-cogs",
+            "description": "Options controlling single-cell consensus read generation (fgbio).",
+            "properties": {
+                "CBs_chunk_size": {
+                    "type": "integer",
+                    "description": "Cell barcode chunk size for parallel processing",
+                    "default": 3000,
+                    "minimum": 100
+                },
+                "fgbio_UMI_consensus_mode": {
+                    "type": "string",
+                    "description": "fgbio UMI-based read grouping strategy",
+                    "default": "Identity"
+                },
+                "fgbio_UMI_consensus_edits": {
+                    "type": "integer",
+                    "description": "Maximum UMI edit distance for read grouping",
+                    "default": 0,
+                    "minimum": 0
+                },
+                "fgbio_min_reads": {
+                    "type": "integer",
+                    "description": "Minimum reads for consensus sequence generation",
+                    "default": 10,
+                    "minimum": 1
+                },
+                "fgbio_base_error_rate": {
+                    "type": "number",
+                    "description": "Maximum fraction of discordant bases in a read group",
+                    "default": 0.2,
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "fgbio_min_base_quality": {
+                    "type": "integer",
+                    "description": "Minimum base-calling quality of consensus bases",
+                    "default": 30,
+                    "minimum": 0,
+                    "maximum": 60
+                },
+                "fgbio_min_alignment_quality": {
+                    "type": "integer",
+                    "description": "Minimum mapping quality of grouped reads",
+                    "default": 60,
+                    "minimum": 0,
+                    "maximum": 60
+                }
+            }
+        },
+        "clone_calling_options": {
+            "title": "Clone calling options",
+            "type": "object",
+            "fa_icon": "fas fa-filter",
+            "description": "Thresholds for CBC-GBC combination filtering and cell assignment.",
+            "properties": {
+                "umi_treshold": {
+                    "type": "integer",
+                    "description": "Minimum nUMIs to consider a CBC-GBC combination supported",
+                    "default": 5,
+                    "minimum": 1
+                },
+                "p_treshold": {
+                    "type": "number",
+                    "description": "Maximum Poisson p-value to consider a CBC-GBC combination supported",
+                    "default": 1,
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "max_ratio_treshold": {
+                    "type": "number",
+                    "description": "Minimum ratio of a GBC nUMIs to the most abundant GBC in a CBC",
+                    "default": 0.5,
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "normalized_abundance_treshold": {
+                    "type": "number",
+                    "description": "Minimum within-cell nUMIs fraction of a CBC-GBC combination",
+                    "default": 0.5,
+                    "minimum": 0,
+                    "maximum": 1
+                }
+            }
+        },
+        "bulk_gbc_options": {
+            "title": "Bulk GBC options",
+            "type": "object",
+            "fa_icon": "fas fa-vials",
+            "description": "Options controlling the bulk GBC entrypoint (BULK_GBC).",
+            "properties": {
+                "bulk_gbc_spikeins_table": {
+                    "type": ["string", "null"],
+                    "description": "Path to a spike-ins table (optional)",
+                    "default": null,
+                    "help_text": "If provided, spike-in GBCs listed here are removed from the bulk GBC counts."
+                },
+                "bulk_gbc_graph_clustering_hamming_treshold": {
+                    "type": "integer",
+                    "description": "Maximum Hamming distance for GBC clustering",
+                    "default": 3,
+                    "minimum": 0
+                },
+                "bulk_gbc_min_n_reads": {
+                    "type": "integer",
+                    "description": "Minimum reads for a corrected GBC to be retained",
+                    "default": 10,
+                    "minimum": 1
+                }
+            }
+        },
+        "generic_options": {
+            "title": "Generic options",
+            "type": "object",
+            "fa_icon": "fas fa-file-import",
+            "description": "Less common options for the pipeline, typically set in a config file.",
+            "properties": {
+                "help": {
+                    "type": "boolean",
+                    "description": "Show help message and exit",
+                    "default": false
+                },
+                "version": {
+                    "type": "boolean",
+                    "description": "Show version information and exit",
+                    "default": false
+                }
+            }
+        }
+    },
+    "allOf": [
+        {
+            "$ref": "#/definitions/input_output_options"
+        },
+        {
+            "$ref": "#/definitions/alignment_options"
+        },
+        {
+            "$ref": "#/definitions/lentiviral_barcode_options"
+        },
+        {
+            "$ref": "#/definitions/sequencing_data_preprocessing_options"
+        },
+        {
+            "$ref": "#/definitions/clone_calling_options"
+        },
+        {
+            "$ref": "#/definitions/bulk_gbc_options"
+        },
+        {
+            "$ref": "#/definitions/generic_options"
+        }
+    ]
+}

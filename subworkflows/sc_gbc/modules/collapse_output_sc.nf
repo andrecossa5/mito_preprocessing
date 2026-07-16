@@ -6,7 +6,7 @@ nextflow.enable.dsl = 2
 
 process collapse_output_sc {
    label 'scLT'
-   publishDir "${params.sc_outdir}", mode: 'copy'
+   publishDir "${params.outdir}", mode: 'copy'
 
    input:
    val ready
@@ -21,7 +21,7 @@ process collapse_output_sc {
    """
    mkdir -p sc_summary
    python ${baseDir}/bin/sc_gbc/collapse_outputs_sc.py \
-        --input ${params.sc_outdir} \
+        --input ${params.outdir} \
         --template ${baseDir}/subworkflows/templates/report_template.html \
         --output sc_summary
    """

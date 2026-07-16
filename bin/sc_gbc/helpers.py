@@ -5,13 +5,11 @@ Utils for custom cell_assignement. Brings together elements from LARRY_2020, CR_
 other (pre-)pubblication works.
 """
 
-import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import poisson
-from sklearn.metrics.pairwise import pairwise_distances
 from itertools import chain
 from plotting_utils._plotting_base import *
 from plotting_utils._utils import Timer
@@ -22,8 +20,7 @@ from plotting_utils._utils import Timer
 
 def read_data(path_sc, sample=None):
     """
-    Create a table of CBC-UMI-GBC combinations from single-cell data, after correcting 
-    GBCs with a bulk reference.
+    Create a table of CBC-UMI-GBC combinations from single-cell data.
     """
 
     sc_df = pd.read_csv(path_sc, sep='\t', dtype='str')
@@ -31,49 +28,6 @@ def read_data(path_sc, sample=None):
     sc_df['GBC'] = sc_df['GBC'].map(lambda x: ''.join([ d_rev[x] for x in reversed(x) ]))
 
     return sc_df
-
-
-##
-
-
-def to_numeric(X):
-    return np.select([X=='A', X=='T', X=='C', X=='G', X=='N'], [1,2,3,4,5], default=0)
-
-
-##
-
-
-def hamming(bc1, bc2): 
-    return np.sum([x1 != x2 for x1,x2 in zip(bc1,bc2)])
-
-
-##
-
- 
-def map_GBCs(sc_df, bulk=None, bulk_correction_treshold=3, ncores=8):
-    """
-    Correct sc GBC sequences with bulk-DNA reference. Outputs a sequence map: sc:bulk.
-    """
-
-    # Correct with bulk reference
-    sc = sc_df['GBC'].value_counts()
-    sc_numeric = to_numeric(np.vstack(sc.index.map(lambda x: np.array(list(x)))))
-    bulk_numeric = to_numeric(np.vstack(bulk.index.map(lambda x: np.array(list(x)))))
-    D = pairwise_distances(
-        sc_numeric, bulk_numeric, metric='hamming', n_jobs=int(ncores)
-    ) * sc_numeric.shape[1]
-
-    # Build a correction dict for sc GBCs at hamming distance <= bulk_sc_treshold from a bulk one.
-    d_corr = (
-        sc.to_frame('read_count')
-        .assign(
-            correct_GBC=[ bulk.index[i] for i in D.argmin(axis=1) ],
-            hamming=D.min(axis=1),
-        )
-    )
-    d_corr = d_corr.query('hamming<=@bulk_correction_treshold')['correct_GBC'].to_dict()
-
-    return d_corr
 
 
 ##
@@ -192,17 +146,16 @@ def get_clones(M):
 
 
 def cell_assignment_workflow(
-    path_sc, bulk_correction_treshold,
-    umi_treshold, p_treshold, max_ratio_treshold, normalized_abundance_treshold,sample=None, 
-    path_bulk=None, path_sample_map=None, sample_params=None
+    path_sc,
+    umi_treshold, p_treshold, max_ratio_treshold, normalized_abundance_treshold, sample=None
     ):
     """
     Complete clone calling and cell assignment workflow.
-    Read bulk and single-cell data, correct sc GBCs with the bulk reference, obtain a df with CBC-GBC combinations,
+    Read single-cell data, obtain a df with CBC-GBC combinations,
     filter them and assign cells to their clonal labels.
     """
     import numpy as np
-    import plotly.graph_objs as go  
+    import plotly.graph_objs as go
     import matplotlib.ticker as mticker
 
     T = Timer()
@@ -210,16 +163,9 @@ def cell_assignment_workflow(
     T.start()
     f = open('clone_calling_summary.txt', 'w')
 
-    if sample_params is not None:
-        umi_treshold = sample_params['umi_treshold']
-        p_treshold = sample_params['p_treshold']
-        max_ratio_treshold = sample_params['max_ratio_treshold']
-        normalized_abundance_treshold = sample_params['normalized_abundance_treshold']
-
     f.write(f'# Custom clone calling and cell assignment workflow, sample {sample}: \n')
     f.write('\n')
     f.write('Input params:\n')
-    f.write(f'  * bulk_correction_treshold: {bulk_correction_treshold}\n')
     f.write(f'  * umi_treshold: {umi_treshold}\n')
     f.write(f'  * p_treshold: {p_treshold}\n')
     f.write(f'  * max_ratio_treshold: {max_ratio_treshold}\n')
@@ -231,25 +177,6 @@ def cell_assignment_workflow(
     # Read and count
     sc_df = read_data(path_sc, sample=sample)
 
-    # Optional: correction with bulk reference
-    bulk_correction = True if os.path.exists(path_sample_map) and os.path.exists(path_bulk) else False
-
-    if bulk_correction:
-        bulk = pd.read_csv(os.path.join(path_bulk, 'summary', 'bulk_GBC_reference.csv'), index_col=0)
-        sample_map = pd.read_csv(path_sample_map, index_col=0)
-        if sample in sample_map.index:
-            ref = sample_map.loc[sample, 'reference']
-            bulk_df = bulk.query('sample==@ref')
-            assert bulk.shape[0]>0
-            print(f'Found bulk GBC sequences for the {sample} sample, from ref {ref}.')
-            # Create correction map and map sc GBCs to corrected bulk ones
-            bulk_map = map_GBCs(sc_df, bulk=bulk_df, bulk_correction_treshold=bulk_correction_treshold)
-            sc_df['GBC'] = sc_df['GBC'].map(bulk_map)
-        else:
-            raise KeyError(
-                f'{sample} is not present in sample_map.csv index. Check errors.'
-            )
-    
     ##
 
     # Get CBC-GBC combos and their supporting nUMIs
@@ -269,26 +196,10 @@ def cell_assignment_workflow(
 
     # General checks
     f.write(f'# General checks \n')
-    if bulk_correction:
-        f.write(f'- Unique, "good" GBCs, post correction (with bulk reference whitelist): {df_combos["GBC"].unique().size}\n')
-    else:
-        f.write(f'- Unique, "good" GBCs: {df_combos["GBC"].unique().size}\n')
+    f.write(f'- Unique, "good" GBCs: {df_combos["GBC"].unique().size}\n')
     f.write(f'- n unsupported CBC-GBC combos (N.B. only good GBCs): {(df_combos["status"]=="unsupported").sum()}\n')
     f.write(f'- n supported CBC-GBC combos (N.B. only good GBCs): {(df_combos["status"]=="supported").sum()}\n')
     f.write(f'- Observed MOI (from supported CBC-GBC combos only): {(M>0).sum(axis=1).median():.2f} median, (+-{(M>0).sum(axis=1).std():.2f})\n\n')
-
-    if bulk_correction:
-        pseudobulk_sc = M.sum(axis=0) / M.sum(axis=0).sum()
-        common = list(set(pseudobulk_sc.index) & set(bulk_df.index))
-        if common:
-            pseudobulk_sc = pseudobulk_sc.loc[common]
-            bulk = bulk_df.loc[common]['read_count'] / bulk_df.loc[common]['read_count'].sum()
-            corr = np.corrcoef(pseudobulk_sc, bulk)[0,1]
-            n_good_gbcs = df_combos["GBC"].unique().size
-            f.write(f'# Individual "good" GBC sequences checks\n')
-            f.write(f'- n "good" GBC sequences, bulk ({bulk_df.shape[0]}) vs sc ({n_good_gbcs})\n')
-            f.write(f'- Fraction of bulk GBCs found in sc: {bulk_df.index.isin(df_combos["GBC"].unique()).sum()/bulk_df.shape[0]:.2f}\n')
-            f.write(f'- Common GBCs abundance (normalized nUMIs from pseudobulk scRNA-seq vs normalized read counts from bulk DNA-seq) correlation: {corr:.2f}\n\n')
 
     sets = get_clones(M)
     GBC_set = list(chain.from_iterable(sets['GBC_set'].map(lambda x: x.split(';')).to_list()))

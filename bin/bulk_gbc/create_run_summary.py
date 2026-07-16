@@ -28,23 +28,23 @@ def main():
         description="Create run summary for bulk GBC analysis."
     )
     parser.add_argument(
-        "--indir",
+        "--input_sheet",
         type=str,
         required=True,
-        help="Input directory."
+        help="Input sample sheet."
+    )
+    parser.add_argument(
+        "--write_dir",
+        type=str,
+        required=True,
+        help="Local directory where run_summary.json is written."
     )
     parser.add_argument(
         "--outdir",
         type=str,
         required=True,
-        help="Output directory."
-    )
-    parser.add_argument(
-        "--params_outdir",
-        type=str,
-        required=True,
         default=None,
-        help="Original pipeline outdir parameter (for reporting only)."
+        help="Pipeline outdir parameter (for reporting only)."
     )
     parser.add_argument(
         "--anchor_sequence",
@@ -99,7 +99,7 @@ def main():
     )
     args = parser.parse_args()
 
-    os.makedirs(args.outdir, exist_ok=True)
+    os.makedirs(args.write_dir, exist_ok=True)
     working_dir, user_name = resolve_working_dir_and_user()
 
     # Load data
@@ -136,8 +136,8 @@ def main():
             "working_directory": working_dir,
         },
         "parameters": {
-            "indir": args.indir,
-            "outdir": args.params_outdir,
+            "input_sheet": args.input_sheet,
+            "outdir": args.outdir,
             "anchor_sequence": args.anchor_sequence,
             "min_n_reads": args.min_n_reads,
             "hamming_treshold": args.hamming_treshold,
@@ -163,7 +163,7 @@ def main():
     }
 
     # Save JSON
-    json_path_outdir = Path(args.outdir) / 'run_summary.json'
+    json_path_outdir = Path(args.write_dir) / 'run_summary.json'
     with open(json_path_outdir, 'w') as jf:
         json.dump(summary_data, jf, indent=2)
 

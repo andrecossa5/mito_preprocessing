@@ -1,40 +1,27 @@
 {
 
-    "bulk_gbc_indir" : "None",
-    "bulk_gbc_outdir" :  "None",
-
-    "raw_data_input" : "/Users/ieo7295/Desktop/tests/nf_lenti_test/sc_bam.csv",
-    "raw_data_input_type" : "bam",
-    "sc_outdir" : "/Users/ieo7295/Desktop/tests/nf_lenti_test/results",
+    "input_sheet" : "/Users/ieo7295/Desktop/tests/nf_lenti_test/fastq_sheet.csv",
+    "input_type" : "fastq",
+    "outdir" : "/Users/ieo7295/Desktop/tests/nf_lenti_test/results",
 
     "ref" : "/Users/ieo7295/Desktop/tests/nf_lenti_test/ref",
-    "string_lentiviral" : "lentiCassette",
-    "string_MT" : "chrM",
-    "whitelist" : "/Users/ieo7295/Desktop/tests/nf_lenti_test/barcodes_100.txt",
+    "lenti_string" : "lentiCassette",
+    "tenx_whitelist" : "/Users/ieo7295/Desktop/tests/nf_lenti_test/10x_whitelist_v3.txt",
 
     "CBs_chunk_size" : 3000, 
     "fgbio_UMI_consensus_mode" : "Identity",
     "fgbio_UMI_consensus_edits" : 0,
-    "fgbio_min_reads_gbc" : 10,
-    "fgbio_min_reads_mito" : 3,
-    "fgbio_base_error_rate_gbc" : 0.2,
-    "fgbio_base_error_rate_mito" : 0.25, 
-    "fgbio_base_quality" : 30,
+    "fgbio_min_reads" : 10,
+    "fgbio_base_error_rate" : 0.2,
+    "fgbio_min_base_quality" : 30,
     "fgbio_min_alignment_quality" : 60,
 
-    "bulk_gbc_graph_clustering_hamming_treshold" : 3,
-    "bulk_gbc_min_n_reads" : 1000,
-    "bulk_gbc_anchor_sequence" : "GGGTTTAAACGGGCCCTCTAG",
-    "sc_gbc_anchor_sequence" : "TAGCAAACTGGGGCACAAGCTTAATTAAGAATT",
-    "bulk_correction_treshold" : 3,
+    "lenti_pattern" : "TAGCAAACTGGGGCACAAGCTTAATTAAGAATT",
+    "lenti_start" : 33,
+    "lenti_bc_length" : 18,
     "umi_treshold" : 5,
     "p_treshold" : 1,
-    "max_ratio_treshold" : 0.75,
-    "normalized_abundance_treshold" : 0.75,
-    "sample_params" : "None",
-    "gbc_sample_map" : "None",
-
-    "bam_file" : "/Users/ieo7295/Desktop/MI_TO/mito_preprocessing/bam_file.csv",
-    "pp_method" : "mito_preprocessing"
+    "max_ratio_treshold" : 0.5,
+    "normalized_abundance_treshold" : 0.5
 
 }

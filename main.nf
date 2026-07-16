@@ -17,7 +17,7 @@ include { createPreprocessingChannel } from "./subworkflows/tenx_gbc/main"
 
 workflow BULK_GBC {
  
-    ch_preprocessing = Channel.fromPath(params.raw_data_input)
+    ch_preprocessing = Channel.fromPath(params.input_sheet)
         .splitCsv(header: true)
         .map { row -> [ row.ID_we_want, "${row.path_bulk}/${row.folder_name_bulk}"] }
     bulk_gbc(ch_preprocessing)

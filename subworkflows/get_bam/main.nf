@@ -61,3 +61,23 @@ workflow get_gbc_bam {
         gbc_bam = SOLO.out.bam.combine(cell_barcodes, by: 0)
 
 }
+
+// Same as get_gbc_bam, but the input is a folder that already holds merged R1/R2
+// (e.g. from SPLIT_MIXED_FASTQ), so SOLO is called directly without re-merging.
+workflow get_gbc_bam_merged {
+
+    take:
+        ch_input        // tuple(sample_name, merged_folder) with R1.fastq.gz + R2.fastq.gz
+        cell_barcodes
+
+    main:
+
+        reads = ch_input.map { sample_name, folder ->
+            tuple(sample_name, file("${folder}/R1.fastq.gz"), file("${folder}/R2.fastq.gz"))
+        }
+        SOLO(reads)
+
+    emit:
+        gbc_bam = SOLO.out.bam.combine(cell_barcodes, by: 0)
+
+}

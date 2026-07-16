@@ -475,7 +475,7 @@
 
   // Helper to check if a sample is fastq or fastq,gbc
   function isFastqSample(s) {
-    const dt = s.raw_data_input_type || '';
+    const dt = s.input_type || '';
     return dt === 'fastq' || dt === 'fastq,gbc';
   }
 

@@ -29,7 +29,7 @@ process CONSENSUS_LENTI {
   """
   # Samtools sort and extract reads from lentiviral cassette
   samtools sort -@ 1 ${bam} --write-index -o sorted.bam 
-  samtools view -b sorted.bam ${params.string_lentiviral} > filtered.bam
+  samtools view -b sorted.bam ${params.lenti_string} > filtered.bam
 
   ##
 
@@ -38,6 +38,7 @@ process CONSENSUS_LENTI {
 	  --input filtered.bam \
     --strategy ${params.fgbio_UMI_consensus_mode} \
     --edits ${params.fgbio_UMI_consensus_edits} \
+    --min-map-q ${params.fgbio_min_alignment_quality} \
 	  --output grouped.bam \
 	  -t UB \
 	  -T MI
@@ -45,8 +46,8 @@ process CONSENSUS_LENTI {
   fgbio -Xmx500m --compression 1 CallMolecularConsensusReads \
     --input grouped.bam \
     --output cons_unmapped.bam \
-    --min-reads ${params.fgbio_min_reads_gbc} \
-    --min-input-base-quality ${params.fgbio_base_quality}
+    --min-reads ${params.fgbio_min_reads} \
+    --min-input-base-quality ${params.fgbio_min_base_quality}
 
   samtools fastq cons_unmapped.bam \
   | bwa mem -t 2 -p -K 150000000 -Y ${ref} - \
@@ -63,9 +64,9 @@ process CONSENSUS_LENTI {
     --input cons_mapped.bam \
     --output filtered_tmp.bam \
     --ref ${ref} \
-    --min-reads ${params.fgbio_min_reads_gbc} \
-    --min-base-quality ${params.fgbio_base_quality} \
-    --max-base-error-rate ${params.fgbio_base_error_rate_gbc}
+    --min-reads ${params.fgbio_min_reads} \
+    --min-base-quality ${params.fgbio_min_base_quality} \
+    --max-base-error-rate ${params.fgbio_base_error_rate}
 
   samtools quickcheck -v filtered_tmp.bam || { echo "ERROR: filtered_tmp.bam failed validation"; exit 1; }
 
@@ -77,7 +78,7 @@ process CONSENSUS_LENTI {
 
 
   # Create tables
-  python ${baseDir}/bin/sc_gbc/consensus_tsv.py consensus_filtered_mapped.bam ${cell}
+  python ${baseDir}/bin/sc_gbc/consensus_tsv.py consensus_filtered_mapped.bam ${cell} ${params.lenti_start} ${params.lenti_bc_length}
   """
 
   stub:

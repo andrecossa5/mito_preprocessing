@@ -14,7 +14,7 @@ process SEARCH_PATTERNS {
   script:
   """
   python \
-  ${baseDir}/bin/bulk_gbc/generate_search_patterns.py ${params.bulk_gbc_anchor_sequence}
+  ${baseDir}/bin/bulk_gbc/generate_search_patterns.py ${params.lenti_pattern}
   """
 
   stub:

@@ -14,7 +14,7 @@ process publish_tenx {
     tag "${sample_name}"
 
     // Publish
-    publishDir "${params.sc_outdir}/${sample_name}/", mode: 'copy'
+    publishDir "${params.outdir}/${sample_name}/", mode: 'copy'
 
     input:
         tuple val(sample_name),
@@ -32,7 +32,7 @@ process publish_tenx {
 
     script:
     """
-    echo moving everything to ${params.sc_outdir}
+    echo moving everything to ${params.outdir}
     """
     stub:
         """
@@ -79,7 +79,40 @@ workflow tenx {
         publish_tenx(publish_input)
 
     emit:
-    
+
+        cell_barcodes = SOLO.out.cell_barcodes
+        filtered = SOLO.out.filtered
+
+}
+
+
+//----------------------------------------------------------------------------//
+// tenx_merged subworkflow
+//   Same as tenx(), but the input is a folder that already holds merged R1/R2
+//   (e.g. from SPLIT_MIXED_FASTQ), so SOLO is called directly without re-merging.
+//----------------------------------------------------------------------------//
+
+
+workflow tenx_merged {
+
+    take:
+        ch_input   // tuple(sample_name, merged_folder) with R1.fastq.gz + R2.fastq.gz
+
+    main:
+
+        reads = ch_input.map { sample_name, folder ->
+            tuple(sample_name, file("${folder}/R1.fastq.gz"), file("${folder}/R2.fastq.gz"))
+        }
+        SOLO(reads)
+        publish_input = SOLO.out.raw
+            .combine(SOLO.out.filtered, by:0)
+            .combine(SOLO.out.stats, by:0)
+            .combine(SOLO.out.summary, by:0)
+            .combine(SOLO.out.bam, by:0)
+        publish_tenx(publish_input)
+
+    emit:
+
         cell_barcodes = SOLO.out.cell_barcodes
         filtered = SOLO.out.filtered
 

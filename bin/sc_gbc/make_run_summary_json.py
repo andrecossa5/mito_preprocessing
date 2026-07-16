@@ -3,7 +3,7 @@
 make_run_summary_json.py
 
 Generate run_summary.json for nf-lenti single-cell GBC pipeline.
-- Collects metrics from clone calling summary, cells summary, clones, GBCs, and bulk reference files.
+- Collects metrics from clone calling summary, cells summary, clones, and GBCs files.
 - Optionally counts reads from FASTQ or BAM input.
 - Encodes QC images for embedding in the report.
 - Outputs a JSON summary with pipeline, run info, parameters, metrics, and QC images.
@@ -56,7 +56,7 @@ def main():
         prog="make_run_summary_json",
         description="""
         Generate run_summary.json for nf-lenti single-cell GBC pipeline.
-        - Collects metrics from clone calling summary, cells summary, clones, GBCs, and bulk reference files.
+        - Collects metrics from clone calling summary, cells summary, clones, and GBCs files.
         - Optionally counts reads from FASTQ or BAM input.
         - Encodes QC images for embedding in the report.
         - Outputs a JSON summary with pipeline, run info, parameters, metrics, and QC images.
@@ -91,12 +91,6 @@ def main():
         type=str,
         required=True,
         help="Path to GBCs file."
-    )
-    parser.add_argument(
-        "--bulk_gbc",
-        type=str,
-        required=True,
-        help="Path to bulk GBC reference file."
     )
     parser.add_argument(
         "--combo_plot",
@@ -134,17 +128,17 @@ def main():
         help="Path to interactive clone size image."
     )
     parser.add_argument(
-        "--raw_data_input",
+        "--input_sheet",
         type=str,
         help="Path to raw data input folder or file."
     )
     parser.add_argument(
-        "--raw_data_input_type",
+        "--input_type",
         type=str,
         help="Type of raw data input (fastq, fastq,gbc, bam)."
     )
     parser.add_argument(
-        "--sc_outdir",
+        "--outdir",
         type=str,
         help="Path to single-cell output directory."
     )
@@ -170,14 +164,13 @@ def main():
     # --- Metrics ---
     metrics = parse_clone_calling_summary(args.clone_summary_txt)
     metrics.setdefault("unique_good_GBCs", None)
-    metrics["unique_gbc_bulk_ref"] = line_count(args.bulk_gbc)
     metrics["unique_gbc_sc"] = count_unique_gbc_in_sc(args.gbcs)
 
     # Add total reads
-    if args.raw_data_input and args.raw_data_input_type:
-        input_type = args.raw_data_input_type.lower()
+    if args.input_sheet and args.input_type:
+        input_type = args.input_type.lower()
         if input_type in ["fastq", "fastq,gbc"]:
-            fastq_input = args.raw_data_input
+            fastq_input = args.input_sheet
             if fastq_input.endswith(".csv"):
                 # Handle CSV input: get FASTQ folders for this sample
                 fastq_folders = get_fastq_folders_from_csv(fastq_input, args.sample)
@@ -189,7 +182,7 @@ def main():
                 # Direct directory input
                 metrics["total_reads"] = count_fastq_reads(fastq_input)
         elif input_type == "bam":
-            bam_path = args.raw_data_input
+            bam_path = args.input_sheet
             if bam_path.endswith(".csv"):
                 bam_path = get_bam_path_from_csv(bam_path, args.sample)
             if bam_path:
@@ -198,11 +191,11 @@ def main():
                 metrics["unmapped_reads"] = unmapped
 
     # STARsolo outputs
-    if args.sc_outdir:
-        barcodes = Path(args.sc_outdir) / "filtered" / "barcodes.tsv.gz"
+    if args.outdir:
+        barcodes = Path(args.outdir) / "filtered" / "barcodes.tsv.gz"
         if barcodes.exists():
             metrics["n_putative_cells"] = line_count(barcodes)
-        transcripts = Path(args.sc_outdir) / "filtered" / "features.tsv.gz"
+        transcripts = Path(args.outdir) / "filtered" / "features.tsv.gz"
         if transcripts.exists():
             metrics["total_n_transcripts"] = line_count(transcripts)
 
@@ -246,9 +239,9 @@ def main():
             "working_directory": working_dir,
         },
         "parameters": {
-            "raw_data_input": args.raw_data_input,
-            "raw_data_input_type": args.raw_data_input_type,
-            "sc_outdir": args.sc_outdir,
+            "input_sheet": args.input_sheet,
+            "input_type": args.input_type,
+            "outdir": args.outdir,
             "pattern": args.pattern,
             "ref": args.ref,
         },
@@ -256,7 +249,6 @@ def main():
             "total_reads": "Total number of sequencing reads",
             "mapped_reads": "Number of mapped reads in BAM",
             "unmapped_reads": "Number of unmapped reads in BAM",
-            "unique_gbc_bulk_ref": "Unique GBC in bulk reference",
             "unique_gbc_sc": "Unique GBC detected in single-cell data",
             "unique_good_GBCs": "Unique GBCs retained after quality filtering",
             "unsupported_combos": "CBC-GBC combos unsupported",
@@ -275,7 +267,7 @@ def main():
                 "id": args.sample,
                 "metrics": metrics,
                 "qc_images": qc_images,
-                "raw_data_input_type": args.raw_data_input_type
+                "input_type": args.input_type
             }
         ]
     }

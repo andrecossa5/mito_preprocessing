@@ -37,7 +37,7 @@ process SOLO {
     --soloCBlen 16 \
     --soloUMIstart 17 \
     --soloUMIlen 12 \
-    --soloCBwhitelist ${params.whitelist} \
+    --soloCBwhitelist ${params.tenx_whitelist} \
     --soloCBmatchWLtype 1MM_multi_Nbase_pseudocounts \
     --soloUMIdedup 1MM_CR \
     --soloCellFilter EmptyDrops_CR 

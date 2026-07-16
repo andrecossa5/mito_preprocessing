@@ -3,7 +3,7 @@
 """
 Cell assignment script.
 """
- 
+
 
 ##
 
@@ -24,45 +24,18 @@ my_parser = argparse.ArgumentParser(
 
 # Input
 my_parser.add_argument(
-    '--sample', 
+    '--sample',
     type=str,
     default=None,
     help='Sample name. Default: None.'
 )
 
-# Output
-my_parser.add_argument(
-    '--path_bulk', 
-    type=str,
-    default=None,
-    help='Path to input bulk reference. Default: None.'
-)
-
-# treshold
+# Input sc GBC reads
 my_parser.add_argument(
     '--path_sc',
     type=str,
     default=None,
     help='Path to input sc GBC reads elements. Default: None.'
-)
-
-# treshold
-my_parser.add_argument(
-    '--sample_map',
-    type=str,
-    default=None,
-    help='Path to sample_map. Default: None.'
-)
-
-# Bulk correction threshold
-my_parser.add_argument(
-    '--bulk_correction_treshold',
-    type=int,
-    default=3,
-    help='''
-    Hamming distance treshold to consider a sc GBC a "degenerate" sequence with respect 
-    to a bulk reference sequence. Default: 3.
-    '''
 )
 
 # UMI threshold
@@ -97,14 +70,6 @@ my_parser.add_argument(
     help='Min abundance (nUMIs fraction within a cell) of a CBC-GBC combination. Default: .8.'
 )
 
-# sample_params
-my_parser.add_argument(
-    '--sample_params',
-    type=str,
-    default="NULL",
-    help='Path to sample_specific filtering parameters. Default: NULL.'
-)
-
 
 ##
 
@@ -112,15 +77,11 @@ my_parser.add_argument(
 # Parse arguments
 args = my_parser.parse_args()
 sample = args.sample
-path_bulk = args.path_bulk
-path_sample_map = args.sample_map
 path_sc = args.path_sc
-bulk_correction_treshold = args.bulk_correction_treshold
 umi_treshold = args.umi_treshold
 p_treshold = args.p_treshold
 max_ratio_treshold = args.max_ratio_treshold
 normalized_abundance_treshold = args.normalized_abundance_treshold
-sample_params = args.sample_params
 
 
 # Import code
@@ -135,34 +96,24 @@ from utils import encode_image_b64, resolve_working_dir_and_user  # or any other
 
 def main():
 
-    try: 
+    try:
 
         """
-        Custom workflow. 
+        Custom workflow.
         Brings together filtering and correction strategies from difference works:
         * Adamson et al., Dixit et al., Cell 2016
         * Weinreb et al., Science 2020
-        * Roda and Cossa et al., Cancer Research 2023 
+        * Roda and Cossa et al., Cancer Research 2023
         * Nadalin et al., pre-print on biorxiv 2023
         """
 
-        if sample_params != "None":
-            params = pd.read_csv(sample_params, index_col=0)
-            params = params.loc[sample].to_dict()
-        else:
-            params = None
-            
         cell_assignment_workflow(
-            path_sc, 
-            sample=sample, 
-            path_bulk=path_bulk, 
-            path_sample_map=path_sample_map, 
-            umi_treshold=umi_treshold, 
+            path_sc,
+            sample=sample,
+            umi_treshold=umi_treshold,
             p_treshold=p_treshold,
             max_ratio_treshold=max_ratio_treshold,
-            normalized_abundance_treshold=normalized_abundance_treshold,
-            sample_params=params,
-            bulk_correction_treshold=bulk_correction_treshold
+            normalized_abundance_treshold=normalized_abundance_treshold
         )
 
     except:
@@ -172,7 +123,7 @@ def main():
             Some problem has been encoutered with the custom_workflow for the {sample} sample...
             '''
         )
-    
+
 
     ##
 

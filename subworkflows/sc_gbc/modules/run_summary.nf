@@ -34,7 +34,6 @@ process generate_run_summary_sc {
         --cells_summary ${cells_summary} \
         --clones ${clones_summary} \
         --gbcs ${GBCs} \
-        --bulk_gbc ${params.bulk_gbc_outdir}/${sample_name}/GBC_counts_corrected.csv \
         --combo_plot ${combo_plot} \
         --umi_dist ${umi_dist} \
         --moi_dist ${moi_dist} \
@@ -42,10 +41,10 @@ process generate_run_summary_sc {
         --umi_dist_interactive ${umi_dist_interactive} \
         --moi_dist_interactive ${moi_dist_interactive} \
         --clone_sz_interactive ${clone_sz_interactive} \
-        --raw_data_input ${params.raw_data_input} \
-        --raw_data_input_type ${params.raw_data_input_type} \
-        --sc_outdir ${params.sc_outdir} \
-        --pattern ${params.sc_gbc_anchor_sequence} \
+        --input_sheet ${params.input_sheet} \
+        --input_type ${params.input_type} \
+        --outdir ${params.outdir} \
+        --pattern ${params.lenti_pattern} \
         --ref ${params.ref} \
         --out_json ${sample_name}/run_summary.json
     """

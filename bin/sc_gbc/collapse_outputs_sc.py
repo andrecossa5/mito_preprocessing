@@ -57,7 +57,7 @@ def main():
         description="Collapse single-cell GBC outputs into a run-level summary and HTML report."
     )
     parser.add_argument("-i", "--input", type=str, required=True,
-                        help="Path to input sc_outdir (parent directory containing per-sample subdirectories).")
+                        help="Path to input outdir (parent directory containing per-sample subdirectories).")
     parser.add_argument("--template", type=str, required=True,
                         help="Path to HTML template for the report.")
     parser.add_argument("-o", "--output", type=str, default="sc_summary",

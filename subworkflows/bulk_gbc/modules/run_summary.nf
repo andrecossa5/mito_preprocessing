@@ -26,10 +26,10 @@ process generate_run_summary_bulk {
   """
   python \
   ${baseDir}/bin/bulk_gbc/create_run_summary.py \
-  --indir ${params.raw_data_input} \
-  --outdir . \
-  --params_outdir ${params.outdir} \
-  --anchor_sequence ${params.bulk_gbc_anchor_sequence} \
+  --input_sheet ${params.input_sheet} \
+  --write_dir . \
+  --outdir ${params.outdir} \
+  --anchor_sequence ${params.lenti_pattern} \
   --sample ${sample_name} \
   --raw_counts ${raw_counts} \
   --corrected_counts ${corrected_counts} \
