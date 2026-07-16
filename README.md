@@ -61,35 +61,40 @@ for `TENX_GBC`, on `--input_type`.
 
 **`BULK_GBC`** — one row per bulk sample:
 
-| ID_we_want | path_bulk | folder_name_bulk |
-|------------|-----------|------------------|
-| `sample_name` | `parent path` | `FASTQs folder name` |
+```csv
+ID_we_want,path_bulk,folder_name_bulk
+MDA_clones,/data/bulk,MDA_clones_GBC
+```
 
 **`TENX_GBC`**, `--input_type` = `fastq` — separate TENX and GBC libraries (two rows per sample):
 
-| sample | fastq_folder | library |
-|--------|--------------|---------|
-| `sample_name` | `FASTQs folder path` | `TENX` |
-| `sample_name` | `FASTQs folder path` | `GBC` |
+```csv
+sample,fastq_folder,library
+MDA_clones,/data/fastq/GEX,TENX
+MDA_clones,/data/fastq/GBC,GBC
+```
 
 **`TENX_GBC`**, `--input_type` = `fastq,GBC` — GBC library plus external cell barcodes:
 
-| sample | fastq_folder | cell_barcodes |
-|--------|--------------|---------------|
-| `sample_name` | `GBC FASTQs folder path` | `cell_barcodes.txt path` |
+```csv
+sample,fastq_folder,cell_barcodes
+MDA_clones,/data/fastq/GBC,/data/barcodes/MDA_clones.txt
+```
 
 **`TENX_GBC`**, `--input_type` = `bam` — pre-aligned GBC library plus external cell barcodes:
 
-| sample | bam | cell_barcodes |
-|--------|-----|---------------|
-| `sample_name` | `GBC bam path` | `cell_barcodes.txt path` |
+```csv
+sample,bam,cell_barcodes
+MDA_clones,/data/bam/MDA_clones.bam,/data/barcodes/MDA_clones.txt
+```
 
 **`TENX_GBC`**, `--input_type` = `fastq,mixed` — a single set of FASTQs with TENX and GBC reads mixed
 together (reads are split by the R2 lentiviral anchor, then processed as in `fastq`):
 
-| sample | fastq_folder |
-|--------|--------------|
-| `sample_name` | `mixed FASTQs folder path` |
+```csv
+sample,fastq_folder
+MDA_clones,/data/fastq/mixed
+```
 
 The `--outdir` parameter is always required.
 
